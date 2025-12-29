@@ -9,7 +9,7 @@ changelog:
         - enhancement
     - title: Bug fix 🐞
       labels:
-        - bugfix
+        - version:patch
     - title: Dependencies Upgrades ⬆️
       labels:
         - dependencies
