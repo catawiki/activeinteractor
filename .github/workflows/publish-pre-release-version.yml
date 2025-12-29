@@ -1,0 +1,45 @@
+name: Publish pre-release version
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  setup-prerelease:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.issue.pull_request && startsWith(github.event.comment.body, '!publish') }}
+    name: Initiate pre-release publishing workflow
+    outputs:
+      checkout_ref: ${{ steps.sha.outputs.result }}
+      bump_target: ${{ steps.tag.outputs.result }}
+    steps:
+      - name: Fetch the last commit in the PR
+        id: sha
+        uses: actions/github-script@v8
+        env:
+          pull_number: ${{ github.event.issue.number }}
+        with:
+          result-encoding: string
+          script: |
+            const { pull_number } = process.env
+            const { owner, repo } = context.repo
+            const pr = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number
+            })
+            return pr.data.head.sha
+
+      - name: Get version tag
+        id: tag
+        run: |
+          echo "Publishing version 0.0.0-${{ steps.sha.outputs.result }} as pre-release package."
+          echo "::set-output name=result::0.0.0-${{ steps.sha.outputs.result }}"
+
+  run-publish-packages-workflow:
+    needs: setup-prerelease
+    uses: ./.github/workflows/publish-packages.yml
+    secrets: inherit
+    with:
+      bump_target: ${{ needs.setup-prerelease.outputs.bump_target }}
+      checkout_ref: ${{ needs.setup-prerelease.outputs.checkout_ref }}
