@@ -98,7 +98,7 @@ module ActiveInteractor
 
       private
 
-      if ActiveSupport.version >= '7.1'
+      if ActiveSupport.version >= Gem::Version.new('7.1')
         def invoke_after(env)
           deferred_after_perform_callbacks.compile(nil).invoke_after(env)
         end

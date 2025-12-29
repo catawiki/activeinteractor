@@ -1,0 +1,35 @@
+name: Publish packages
+
+on:
+  workflow_call:
+    inputs:
+      bump_target:
+        required: true
+        type: string
+      checkout_ref:
+        required: true
+        type: string
+    outputs:
+      package_version:
+        value: ${{ jobs.publish-packages.outputs.package_version }}
+
+jobs:
+  publish-packages:
+    name: Publish packages
+    outputs:
+      package_version: ${{ env.VERSION }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          token: ${{ secrets.GEM_RELEASE_TOKEN }}
+          persist-credentials: true
+          ref: ${{ inputs.checkout_ref }}
+
+      - name: Release new version of the gem
+        uses: "catawiki/gem-release-action@v2.3"
+        with:
+          github_packages_owner: catawiki
+          github_packages_token: ${{ secrets.GEM_RELEASE_TOKEN }}
+          bump_target: ${{ inputs.bump_target }}
